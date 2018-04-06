@@ -58,10 +58,7 @@ public class HttpRequest {
 
     public void GetImage(final String url, Response.Listener<Bitmap> listener)
     {
-        //RequestQueue queue = Volley.newRequestQueue(context);
         Volley.newRequestQueue(context).add(new ImageRequest(url, listener, 1024, 1024, null, null));
-
-        //queue.add(stringRequest);
     }
 
     public void GetPhotos(String url, final ListView listView, final int limit)
@@ -102,7 +99,6 @@ public class HttpRequest {
                 Response.Listener<Bitmap> listener = new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
-                        System.out.println("okok");
                         list.add(response);
                         listView.setAdapter(adapterList);
                     }};

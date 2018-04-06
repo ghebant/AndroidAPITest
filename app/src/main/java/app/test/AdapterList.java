@@ -63,7 +63,7 @@ public class AdapterList extends BaseAdapter {
         if (image != null)
             image.setImageBitmap(photos.get(i));
         else
-            System.out.println("IMAGE EST NULL");
+            System.out.println("IMAGE IS NULL");
 
         return imageView;
     }

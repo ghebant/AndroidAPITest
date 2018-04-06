@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -51,24 +52,38 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        locationManager = (LocationManager)
-                getSystemService(Context.LOCATION_SERVICE);
+        //-----Location
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        LocationListener locationListener = new MyLocationListener();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        final Location[] location = {locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)};
+        //permission Location
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(MainActivity.this, "Activate your location !", Toast.LENGTH_SHORT);
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        //------------
 
         FloatingActionButton postitionBtn = (FloatingActionButton) findViewById(R.id.positionBtn);
         postitionBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-
-                LocationListener locationListener = new MyLocationListener(view);
-                //permission Location
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(MainActivity.this, "Activate your location !", Toast.LENGTH_SHORT);
                     return;
                 }
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+                location[0] = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                if (location[0] == null)
+                    Snackbar.make(view, "Searching for your position...", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+                else
+                    Snackbar.make(view, "Latitude : " + location[0].getLatitude()
+                            + " Longitude : " + location[0].getLongitude(), Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
             }
         });
 
@@ -99,7 +114,6 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.photos) {
-            View view = getLayoutInflater().inflate(R.layout.photo, null);
             ListView listView = findViewById(R.id.list_articles);
             httpRequest.GetPhotos("https://jsonplaceholder.typicode.com/photos", listView, 20);
         } else if (id == R.id.articles) {
