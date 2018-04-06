@@ -54,7 +54,7 @@ public class AdapterList extends BaseAdapter {
             imageView = mInflater.inflate(R.layout.photo, null);
             TextView textView = (TextView) imageView.findViewById(R.id.title);
             String text = titles.get(i);
-            System.out.println(i);
+            //System.out.println(i);
             textView.setText(text);
         }
 
