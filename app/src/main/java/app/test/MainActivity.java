@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Snackbar.make(view, "Permission problem", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
                     return;
                 }
                 location[0] = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
