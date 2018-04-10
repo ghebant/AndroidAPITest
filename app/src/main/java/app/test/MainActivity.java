@@ -11,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -28,6 +29,12 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,43 +66,53 @@ public class MainActivity extends AppCompatActivity
 
         this.setTitle("Your ip : " + getIp());
         //-----Location
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        LocationListener locationListener = new MyLocationListener();
+
+        final FusedLocationProviderClient mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        final Location[] location = {locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)};
-        //permission Location
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(MainActivity.this, "Activate your location !", Toast.LENGTH_SHORT);
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         //------------
 
         System.out.println(getIp());
 
         FloatingActionButton postitionBtn = (FloatingActionButton) findViewById(R.id.positionBtn);
-        postitionBtn.setOnClickListener(new View.OnClickListener() {
+       postitionBtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     Snackbar.make(view, "Permission problem", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                     return;
                 }
-                location[0] = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-                if (location[0] == null)
-                    Snackbar.make(view, "Searching for your position...", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                else
-                    Snackbar.make(view, "Latitude : " + location[0].getLatitude()
-                            + " Longitude : " + location[0].getLongitude(), Snackbar.LENGTH_LONG)
+                Task<Location> task = mFusedLocationClient.getLastLocation()
+                        .addOnSuccessListener(new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                // GPS location can be null if GPS is switched off
+                                if (location != null) {
+                                    //System.out.println("LOC : " + location.getLatitude() + " " + location.getLongitude());
+                                    Snackbar.make(view, "Latitude : " + location.getLatitude()
+                                            + " Longitude : " + location.getLongitude(), Snackbar.LENGTH_LONG)
+                                            .setAction("Action", null).show();
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                System.out.println("Error trying to get last GPS location");
+                                e.printStackTrace();
+                            }
+                        });
+
+                if (task == null)
+                {
+                    Snackbar.make(view, "Check your GPS or wait for location...", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
-            }
-        });
+                }
+            }});
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.menu_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
